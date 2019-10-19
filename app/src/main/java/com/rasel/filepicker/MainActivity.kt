@@ -76,7 +76,7 @@ class MainActivity : AppCompatActivity() {
     private fun readTextFromUri(uri: Uri) {
 
         contentResolver.openInputStream(uri)?.use { inputStream ->
-            val path = saveStreamTemp(inputStream)
+            val path = saveStreamTempTwo(inputStream)
             Log.d("rsl", path)
         }
     }
@@ -92,9 +92,9 @@ class MainActivity : AppCompatActivity() {
                 this.getExternalFilesDir(DIRECTORY_PICTURES)?.getAbsolutePath(),
                 "temp_$timeStamp.jpeg"
             )
-          Log.d("rsl", "path abs : ${file.absolutePath}")
+            Log.d("rsl", "path abs : ${file.absolutePath}")
             val output: OutputStream
-            val outB : BufferedOutputStream
+            val outB: BufferedOutputStream
             try {
                 output = FileOutputStream(file)
                 outB = BufferedOutputStream(output)
@@ -134,6 +134,42 @@ class MainActivity : AppCompatActivity() {
         }
 
         return file.getPath()
+    }
+
+    fun saveStreamTempTwo(fStream: InputStream): String {
+        val file: File
+        try {
+            val timeStamp = SimpleDateFormat("yyyyMMdd_HHmmss").format(Date())
+
+            // file = File(this.getCacheDir(), "temp_$timeStamp.jpeg")
+            //  file = File( getExternalStoragePublicDirectory(Environment.DIRECTORY_PICTURES), "temp_$timeStamp.jpeg")
+            file = File(
+                this.getExternalFilesDir(DIRECTORY_PICTURES)?.getAbsolutePath(),
+                "temp_$timeStamp.jpeg"
+            )
+            Log.d("rsl", "path abs : ${file.absolutePath}")
+
+            val output = FileOutputStream(file)
+
+            val buffer = ByteArray(8192)
+            fStream.use { input ->
+                output.use { fileOut ->
+
+                    while (true) {
+                        val length = input.read(buffer)
+                        if (length <= 0)
+                            break
+                        fileOut.write(buffer, 0, length)
+                    }
+                    fileOut.flush()
+                    fileOut.close()
+                }
+            }
+            fStream.close()
+            return file.getPath()
+        } catch (e: Exception) {
+            return ""
+        }
     }
 
 
